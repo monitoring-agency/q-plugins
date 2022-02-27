@@ -35,7 +35,7 @@ type out struct {
 }
 
 func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
-	var dps = make([]interface{}, len(dataPoints))
+	var dps []interface{}
 
 	for i := 0; i < len(dataPoints); i++ {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
