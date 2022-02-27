@@ -23,18 +23,16 @@ func NewCommandLineInterface(applicationName string, applicationDescription stri
 		Parser:        *argparse.NewParser(applicationName, applicationDescription, &argparse.ParserConfig{}),
 		pluginVersion: pluginVersion,
 	}
+	cli.versionFlag = cli.Parser.Flag("V", "version", &argparse.Option{
+		Help: "Specify to output the version of the plugin and exit",
+	})
+	cli.generateDescriptionFlag = cli.Parser.Flag("", "generate-description", &argparse.Option{
+		Help: "Generate the description of this plugin and save it to",
+	})
 
 	cli.DebugFlag = cli.Parser.Flag("d", "debug", &argparse.Option{
 		Group: "general options",
 		Help:  "Specify to enable debug output of the plugin",
-	})
-	cli.versionFlag = cli.Parser.Flag("V", "version", &argparse.Option{
-		Group: "general options",
-		Help:  "Specify to output the version of the plugin and exit",
-	})
-	cli.generateDescriptionFlag = cli.Parser.Flag("", "generate-description", &argparse.Option{
-		Group: "general options",
-		Help:  "Generate the description of this plugin and save it to",
 	})
 
 	return &cli
