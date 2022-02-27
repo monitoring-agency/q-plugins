@@ -1,9 +1,9 @@
-package formatter
+package state
 
 type State int
 
 const (
-	OK State = iota + 1
+	OK State = iota
 	WARN
 	CRITICAL
 	UNKNOWN

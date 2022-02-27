@@ -3,6 +3,7 @@ package formatter
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/myOmikron/q-plugins/lib/state"
 	"os"
 	"time"
 )
@@ -33,16 +34,16 @@ type out struct {
 	Datasets []interface{} `json:"datasets"`
 }
 
-func FormatOutputQ(stdout string, state State, dataPoints ...interface{}) {
+func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 	j, err := json.Marshal(out{
 		Stdout:   stdout,
-		State:    int(state) - 1,
+		State:    int(st),
 		Datasets: dataPoints,
 	})
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(3)
+		os.Exit(int(state.UNKNOWN))
 	}
 	fmt.Println(string(j))
-	os.Exit(int(state) - 1)
+	os.Exit(int(st))
 }

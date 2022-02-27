@@ -6,6 +6,7 @@ import (
 	"github.com/hellflame/argparse"
 	"github.com/myOmikron/q-plugins/lib/cli"
 	"github.com/myOmikron/q-plugins/lib/formatter"
+	"github.com/myOmikron/q-plugins/lib/state"
 	"github.com/myOmikron/q-plugins/lib/validator"
 	"os"
 	"time"
@@ -85,7 +86,7 @@ func main() {
 		case diff > *criticalCount:
 			formatter.FormatOutputQ(
 				"Critical output",
-				formatter.CRITICAL,
+				state.CRITICAL,
 				avgRtt,
 				minRtt,
 				maxRtt,
@@ -94,7 +95,7 @@ func main() {
 		case diff > *warningCount:
 			formatter.FormatOutputQ(
 				"Warning output",
-				formatter.WARN,
+				state.WARN,
 				avgRtt,
 				minRtt,
 				maxRtt,
@@ -103,7 +104,7 @@ func main() {
 		case diff == 0:
 			formatter.FormatOutputQ(
 				"OK",
-				formatter.OK,
+				state.OK,
 				avgRtt,
 				minRtt,
 				maxRtt,

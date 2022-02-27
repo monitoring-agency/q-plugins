@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hellflame/argparse"
+	"github.com/myOmikron/q-plugins/lib/state"
 	"io/ioutil"
 	"os"
 )
@@ -44,7 +45,7 @@ func (cli *commandLineInterface) ParseArgs() {
 		switch {
 		case *cli.versionFlag:
 			fmt.Printf("Version: %v", cli.pluginVersion)
-			os.Exit(3)
+			os.Exit(int(state.OK))
 
 		case *cli.generateDescriptionFlag:
 			var description string
@@ -58,25 +59,25 @@ func (cli *commandLineInterface) ParseArgs() {
 				description: cli.pluginDescription,
 			}); err != nil {
 				fmt.Println(err.Error())
-				os.Exit(3)
+				os.Exit(int(state.UNKNOWN))
 			} else {
 				description = string(j)
 			}
 
 			if executable, err := os.Executable(); err != nil {
 				fmt.Println(err.Error())
-				os.Exit(3)
+				os.Exit(int(state.UNKNOWN))
 			} else {
 				if err := ioutil.WriteFile(executable+".json", []byte(description), 0664); err != nil {
 					fmt.Println(err.Error())
-					os.Exit(3)
+					os.Exit(int(state.UNKNOWN))
 				}
 				fmt.Printf("Description was saved to %s\n", executable)
-				os.Exit(0)
+				os.Exit(int(state.OK))
 			}
 		default:
 			fmt.Println(err.Error())
-			os.Exit(3)
+			os.Exit(int(state.UNKNOWN))
 		}
 	}
 }
