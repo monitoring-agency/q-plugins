@@ -12,11 +12,21 @@ import (
 	"time"
 )
 
+var description = `This plugin can be used to check hosts via ping with UDP or raw sockets.
+
+NOTE:
+    UDP:
+        Unprivileged pings must be enabled:
+            sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+    Raw sockets:
+        As raw sockets can only be used by root, this check also must be executed in the context of root.`
+
 func main() {
 	parser := cli.NewCommandLineInterface(
 		"ICMP Checker",
-		"This is a program to check hosts via icmp",
+		description,
 		"0.1.0",
+		"",
 	)
 
 	hostname := parser.Parser.String("H", "hostname", &argparse.Option{
@@ -41,6 +51,10 @@ func main() {
 		Group:    "plugin options",
 		Validate: validator.PositiveFloatValidator,
 		Help:     "The timeout of each packet, in seconds",
+	})
+	privileged := parser.Parser.Flag("", "privileged", &argparse.Option{
+		Group: "plugin options",
+		Help:  "If used, raw sockets instead of UDP are used. Requires to run the binary as root",
 	})
 	warningCount := parser.Parser.Int("", "warning-count", &argparse.Option{
 		Default:  "1",
@@ -113,6 +127,7 @@ func main() {
 		}
 	}
 	pinger.Count = *count
+	pinger.SetPrivileged(*privileged)
 	pinger.Timeout = time.Millisecond * time.Duration(1000*(*timeout*float64(*count)+*interval*float64(*count)))
 	pinger.Interval = time.Millisecond * time.Duration(1000**interval)
 
