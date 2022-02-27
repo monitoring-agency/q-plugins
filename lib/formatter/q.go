@@ -47,6 +47,8 @@ func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 			dps = append(dps, v)
 		} else if v, ok := dataPoints[i].(*IntDataPoint); ok {
 			dps = append(dps, v)
+		} else if v, ok := dataPoints[i].(*StringDataPoint); ok {
+			dps = append(dps, v)
 		}
 	}
 
