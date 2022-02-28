@@ -28,9 +28,19 @@ type TimeDataPoint struct {
 	Value time.Duration `json:"value"`
 }
 
+type DateTimeDataPoint struct {
+	Key   string    `json:"key"`
+	Value time.Time `json:"value"`
+}
+
+type dataPoint struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+	Type  string      `json:"type"`
+}
+
 type out struct {
 	Stdout   string        `json:"stdout"`
-	State    int           `json:"state"`
 	Datasets []interface{} `json:"datasets"`
 }
 
@@ -39,22 +49,40 @@ func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 
 	for i := 0; i < len(dataPoints); i++ {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
-			dps = append(dps, Float64DataPoint{
+			dps = append(dps, dataPoint{
 				Key:   v.Key,
 				Value: float64(v.Value) / float64(time.Millisecond),
+				Type:  "float",
 			})
 		} else if v, ok := dataPoints[i].(*Float64DataPoint); ok {
-			dps = append(dps, v)
+			dps = append(dps, dataPoint{
+				Key:   v.Key,
+				Value: v.Value,
+				Type:  "float",
+			})
 		} else if v, ok := dataPoints[i].(*IntDataPoint); ok {
-			dps = append(dps, v)
+			dps = append(dps, dataPoint{
+				Key:   v.Key,
+				Value: v.Value,
+				Type:  "int",
+			})
 		} else if v, ok := dataPoints[i].(*StringDataPoint); ok {
-			dps = append(dps, v)
+			dps = append(dps, dataPoint{
+				Key:   v.Key,
+				Value: v.Value,
+				Type:  "string",
+			})
+		} else if v, ok := dataPoints[i].(*DateTimeDataPoint); ok {
+			dps = append(dps, dataPoint{
+				Key:   v.Key,
+				Value: v.Value,
+				Type:  "time",
+			})
 		}
 	}
 
 	j, err := json.Marshal(out{
 		Stdout:   stdout,
-		State:    int(st),
 		Datasets: dps,
 	})
 	if err != nil {
