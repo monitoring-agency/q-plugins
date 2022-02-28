@@ -56,17 +56,26 @@ func main() {
 		Group: "plugin options",
 		Help:  "If used, raw sockets instead of UDP are used. Requires to run the binary as root",
 	})
+
 	warningCount := parser.Parser.Int("", "warning-count", &argparse.Option{
-		Default:  "1",
 		Group:    "plugin options",
 		Validate: validator.PositiveIntegerValidator,
 		Help:     "Specifies how many packets can be lost until the warning state is set",
 	})
 	criticalCount := parser.Parser.Int("", "critical-count", &argparse.Option{
-		Default:  "2",
 		Group:    "plugin options",
 		Validate: validator.PositiveIntegerValidator,
 		Help:     "Specifies how many packets can be lost until the critical state is set",
+	})
+	warningRtt := parser.Parser.Int("", "warning-rtt", &argparse.Option{
+		Group:    "plugin options",
+		Validate: validator.PositiveIntegerValidator,
+		Help:     "Warning state will be set if avg-rtt is greater than this value, in ms",
+	})
+	criticalRtt := parser.Parser.Int("", "critical-rtt", &argparse.Option{
+		Group:    "plugin options",
+		Validate: validator.PositiveIntegerValidator,
+		Help:     "Critical state will be set if the avg-rtt is greater than this value, in ms",
 	})
 
 	parser.ParseArgs()
@@ -97,7 +106,7 @@ func main() {
 		}
 
 		switch {
-		case diff > *criticalCount:
+		case (*criticalCount > 0 && diff > *criticalCount) || (*criticalRtt > 0 && stats.AvgRtt > time.Millisecond*time.Duration(*criticalRtt)):
 			formatter.FormatOutputQ(
 				"Critical output",
 				state.CRITICAL,
@@ -106,7 +115,7 @@ func main() {
 				maxRtt,
 				packetloss,
 			)
-		case diff > *warningCount:
+		case (*warningCount > 0 && diff > *warningCount) || (*warningRtt > 0 && stats.AvgRtt > time.Millisecond*time.Duration(*warningRtt)):
 			formatter.FormatOutputQ(
 				"Warning output",
 				state.WARN,
