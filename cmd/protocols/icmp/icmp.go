@@ -83,7 +83,7 @@ func main() {
 	pinger, err := ping.NewPinger(*hostname)
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(3)
+		os.Exit(int(state.UNKNOWN))
 	}
 
 	pinger.OnFinish = func(stats *ping.Statistics) {
@@ -142,5 +142,6 @@ func main() {
 
 	if err := pinger.Run(); err != nil {
 		fmt.Println(err.Error())
+		os.Exit(int(state.UNKNOWN))
 	}
 }
