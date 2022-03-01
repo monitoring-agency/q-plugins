@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/go-ping/ping v0.0.0-20211130115550-779d1e919534
-	github.com/hellflame/argparse v1.7.1
+	github.com/hellflame/argparse v1.7.2
 )
 
 require (
