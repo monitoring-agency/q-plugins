@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hellflame/argparse"
+	"github.com/myOmikron/q-plugins/lib/formatter"
 	"github.com/myOmikron/q-plugins/lib/state"
 	"io/ioutil"
 	"os"
@@ -11,11 +12,9 @@ import (
 )
 
 type commandLineInterface struct {
-	Parser                  argparse.Parser
-	DebugFlag               *bool
+	Parser                  *argparse.Parser
 	versionFlag             *bool
 	generateDescriptionFlag *bool
-	SnmpOptions             *snmpOptions
 	pluginVersion           string
 	pluginName              string
 	pluginDescription       string
@@ -29,7 +28,7 @@ func NewCommandLineInterface(
 ) *commandLineInterface {
 
 	cli := commandLineInterface{
-		Parser: *argparse.NewParser(pluginName, pluginDescription, &argparse.ParserConfig{
+		Parser: argparse.NewParser(pluginName, pluginDescription, &argparse.ParserConfig{
 			EpiLog: epilog,
 		}),
 		pluginVersion:     pluginVersion,
@@ -43,93 +42,69 @@ func NewCommandLineInterface(
 		Help: "Generate the description of this plugin and save it to {executable}.json",
 	})
 
-	cli.DebugFlag = cli.Parser.Flag("d", "debug", &argparse.Option{
-		Group: "general options",
-		Help:  "Specify to enable debug output of the plugin",
-	})
-
 	return &cli
 }
 
+func (cli *commandLineInterface) AddSubCommand(cmd string, commandDescription string, epilog string) *commandLineInterface {
+	childParser := cli.Parser.AddCommand(cmd, commandDescription, &argparse.ParserConfig{
+		Usage:  commandDescription,
+		EpiLog: epilog,
+	})
+
+	return &commandLineInterface{
+		Parser: childParser,
+	}
+}
+
+func (cli *commandLineInterface) generateDescription() {
+	splitDescription := strings.Split(cli.pluginDescription, "\n\n")
+	shortDescription := splitDescription[0]
+
+	var description string
+	if j, err := json.Marshal(&struct {
+		Version     string `json:"version"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}{
+		Version:     cli.pluginVersion,
+		Name:        cli.pluginName,
+		Description: shortDescription,
+	}); err != nil {
+		formatter.Error(err)
+	} else {
+		description = string(j)
+	}
+
+	if executable, err := os.Executable(); err != nil {
+		formatter.Error(err)
+	} else {
+		if err := ioutil.WriteFile(executable+".json", []byte(description), 0664); err != nil {
+			formatter.Error(err)
+		}
+		fmt.Printf("Description was saved to %s\n", executable+".json")
+		os.Exit(int(state.OK))
+	}
+}
+
+func (cli *commandLineInterface) checkDefaultArguments() {
+	switch {
+	case *cli.versionFlag:
+		fmt.Printf("Version: %v", cli.pluginVersion)
+		os.Exit(int(state.OK))
+
+	case *cli.generateDescriptionFlag:
+		cli.generateDescription()
+	}
+}
+
 func (cli *commandLineInterface) ParseArgs() {
-	if err := cli.Parser.Parse(nil); err != nil {
+	err := cli.Parser.Parse(nil)
+	if err != nil {
+		// This will terminate if a default arg was found
+		cli.checkDefaultArguments()
 
-		switch {
-		case *cli.versionFlag:
-			fmt.Printf("Version: %v", cli.pluginVersion)
-			os.Exit(int(state.OK))
-
-		case *cli.generateDescriptionFlag:
-			splitDescription := strings.Split(cli.pluginDescription, "\n\n")
-			shortDescription := splitDescription[0]
-
-			var description string
-			if j, err := json.Marshal(&struct {
-				Version     string `json:"version"`
-				Name        string `json:"name"`
-				Description string `json:"description"`
-			}{
-				Version:     cli.pluginVersion,
-				Name:        cli.pluginName,
-				Description: shortDescription,
-			}); err != nil {
-				fmt.Println(err.Error())
-				os.Exit(int(state.UNKNOWN))
-			} else {
-				description = string(j)
-			}
-
-			if executable, err := os.Executable(); err != nil {
-				fmt.Println(err.Error())
-				os.Exit(int(state.UNKNOWN))
-			} else {
-				if err := ioutil.WriteFile(executable+".json", []byte(description), 0664); err != nil {
-					fmt.Println(err.Error())
-					os.Exit(int(state.UNKNOWN))
-				}
-				fmt.Printf("Description was saved to %s\n", executable+".json")
-				os.Exit(int(state.OK))
-			}
-		default:
-			fmt.Println(err.Error())
-			os.Exit(int(state.UNKNOWN))
-		}
+		formatter.Error(err)
 	}
 
-	if cli.SnmpOptions != nil {
-		program := strings.Split(os.Args[0], "/")
-		name := program[len(program)-1]
-		argparseError := fmt.Sprintf("%s: error: the following arguments are required: %%s\n", name)
-
-		switch *cli.SnmpOptions.SnmpVersion {
-		case "2c":
-			if *cli.SnmpOptions.SnmpCommunity == "" {
-				fmt.Printf(argparseError, "--snmp-community")
-				os.Exit(int(state.UNKNOWN))
-			}
-		case "3":
-			var missing []string
-			if *cli.SnmpOptions.SnmpSecurityLevel == "" {
-				missing = append(missing, "--snmp-security-level")
-			} else {
-				switch *cli.SnmpOptions.SnmpSecurityLevel {
-				case "authNoPriv":
-					if *cli.SnmpOptions.SnmpAuthPassphrase == "" {
-						missing = append(missing, "--snmp-auth-pass")
-					}
-				case "authPriv":
-					if *cli.SnmpOptions.SnmpAuthPassphrase == "" {
-						missing = append(missing, "--snmp-auth-pass")
-					}
-					if *cli.SnmpOptions.SnmpPrivPassphrase == "" {
-						missing = append(missing, "--snmp-priv-pass")
-					}
-				}
-			}
-			if len(missing) > 0 {
-				fmt.Printf(argparseError, strings.Join(missing, " "))
-				os.Exit(int(state.UNKNOWN))
-			}
-		}
-	}
+	cli.checkDefaultArguments()
 }
