@@ -1,14 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-ping/ping"
 	"github.com/hellflame/argparse"
 	"github.com/myOmikron/q-plugins/lib/cli"
 	"github.com/myOmikron/q-plugins/lib/formatter"
 	"github.com/myOmikron/q-plugins/lib/state"
 	"github.com/myOmikron/q-plugins/lib/validator"
-	"os"
 	"time"
 )
 
@@ -82,8 +80,7 @@ func main() {
 
 	pinger, err := ping.NewPinger(*hostname)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(int(state.UNKNOWN))
+		formatter.Error(err)
 	}
 
 	pinger.OnFinish = func(stats *ping.Statistics) {
@@ -141,7 +138,6 @@ func main() {
 	pinger.Interval = time.Millisecond * time.Duration(1000**interval)
 
 	if err := pinger.Run(); err != nil {
-		fmt.Println(err.Error())
-		os.Exit(int(state.UNKNOWN))
+		formatter.Error(err)
 	}
 }
