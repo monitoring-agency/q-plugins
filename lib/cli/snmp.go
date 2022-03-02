@@ -1,11 +1,15 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/hellflame/argparse"
+	"github.com/myOmikron/q-plugins/lib/state"
 	"github.com/myOmikron/q-plugins/lib/validator"
+	"os"
+	"strings"
 )
 
-type snmpOptions struct {
+type SnmpOptions struct {
 	SnmpVersion        *string
 	SnmpPort           *int
 	SnmpProtocol       *string
@@ -16,9 +20,10 @@ type snmpOptions struct {
 	SnmpAuthPassphrase *string
 	SnmpPrivProtocol   *string
 	SnmpPrivPassphrase *string
+	SnmpUser           *string
 }
 
-func (cli *commandLineInterface) AddSnmpArguments() {
+func (cli *commandLineInterface) AddSnmpArguments() *SnmpOptions {
 	snmpVersion := cli.Parser.String("", "snmp-version", &argparse.Option{
 		Required: true,
 		Group:    "snmp options",
@@ -31,6 +36,10 @@ func (cli *commandLineInterface) AddSnmpArguments() {
 		Help:  "Community of SNMP. Only applies for SNMP v2c",
 	})
 
+	snmpUser := cli.Parser.String("", "snmp-user", &argparse.Option{
+		Group: "snmp options",
+		Help:  "Username to authenticate with. Only applies for SNMP v3",
+	})
 	snmpSecurityLevel := cli.Parser.String("", "snmp-security-level", &argparse.Option{
 		Group:   "snmp options",
 		Help:    "Security level of SNMP messages. One of noAuthNoPriv, authNoPriv, authPriv. Only applies for SNMP v3",
@@ -67,7 +76,7 @@ func (cli *commandLineInterface) AddSnmpArguments() {
 		Default:  "161",
 		Group:    "snmp options",
 		Help:     "Port of the SNMP daemon. Defaults to 161",
-		Validate: validator.PositiveIntegerValidator,
+		Validate: validator.PortValidator,
 	})
 	snmpProtocol := cli.Parser.String("", "snmp-protocol", &argparse.Option{
 		Default: "udp",
@@ -75,7 +84,8 @@ func (cli *commandLineInterface) AddSnmpArguments() {
 		Help:    "Protocol used for transport. One of udp, tcp. Defaults to udp",
 		Choices: []interface{}{"udp", "tcp"},
 	})
-	cli.SnmpOptions = &snmpOptions{
+
+	return &SnmpOptions{
 		SnmpVersion:        snmpVersion,
 		SnmpPort:           snmpPort,
 		SnmpCommunity:      snmpCommunity,
@@ -86,5 +96,6 @@ func (cli *commandLineInterface) AddSnmpArguments() {
 		SnmpAuthPassphrase: snmpAuthenticationPassphrase,
 		SnmpPrivProtocol:   snmpPrivProtocol,
 		SnmpPrivPassphrase: snmpPrivPassphrase,
+		SnmpUser:           snmpUser,
 	}
 }
