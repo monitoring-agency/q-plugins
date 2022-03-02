@@ -44,8 +44,12 @@ type out struct {
 	Datasets []interface{} `json:"datasets"`
 }
 
+func Error(err error) {
+	FormatOutputQ(err.Error(), state.UNKNOWN)
+}
+
 func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
-	var dps []interface{}
+	var dps = make([]interface{}, 0)
 
 	for i := 0; i < len(dataPoints); i++ {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
