@@ -99,3 +99,43 @@ func (cli *commandLineInterface) AddSnmpArguments() *SnmpOptions {
 		SnmpUser:           snmpUser,
 	}
 }
+
+func CheckSnmpOptions(snmpOptions *SnmpOptions) {
+	program := strings.Split(os.Args[0], "/")
+	name := program[len(program)-1]
+	argparseError := fmt.Sprintf("%s: error: the following arguments are required: %%s\n", name)
+
+	switch *snmpOptions.SnmpVersion {
+	case "2c":
+		if *snmpOptions.SnmpCommunity == "" {
+			fmt.Printf(argparseError, "--snmp-community")
+			os.Exit(int(state.UNKNOWN))
+		}
+	case "3":
+		var missing []string
+		if *snmpOptions.SnmpUser == "" {
+			missing = append(missing, "--snmp-user")
+		}
+		if *snmpOptions.SnmpSecurityLevel == "" {
+			missing = append(missing, "--snmp-security-level")
+		} else {
+			switch *snmpOptions.SnmpSecurityLevel {
+			case "authNoPriv":
+				if *snmpOptions.SnmpAuthPassphrase == "" {
+					missing = append(missing, "--snmp-auth-pass")
+				}
+			case "authPriv":
+				if *snmpOptions.SnmpAuthPassphrase == "" {
+					missing = append(missing, "--snmp-auth-pass")
+				}
+				if *snmpOptions.SnmpPrivPassphrase == "" {
+					missing = append(missing, "--snmp-priv-pass")
+				}
+			}
+		}
+		if len(missing) > 0 {
+			fmt.Printf(argparseError, strings.Join(missing, " "))
+			os.Exit(int(state.UNKNOWN))
+		}
+	}
+}
