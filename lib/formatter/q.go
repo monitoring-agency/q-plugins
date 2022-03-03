@@ -55,8 +55,8 @@ func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
 			dps = append(dps, dataPoint{
 				Key:   v.Key,
-				Value: float64(v.Value) / float64(time.Millisecond),
-				Type:  "float",
+				Value: v.Value.Milliseconds(),
+				Type:  "int",
 			})
 		} else if v, ok := dataPoints[i].(*Float64DataPoint); ok {
 			dps = append(dps, dataPoint{
