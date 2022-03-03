@@ -19,3 +19,10 @@ func PortValidator(i string) (err error) {
 	}
 	return
 }
+
+func IntPercentageValidator(i string) (err error) {
+	if i, _ := strconv.Atoi(i); i < 0 || i > 100 {
+		err = errors.New("value must be in range 0-100")
+	}
+	return
+}
