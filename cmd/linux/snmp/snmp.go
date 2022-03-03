@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hellflame/argparse"
 	"github.com/myOmikron/q-plugins/lib/cli"
+	"github.com/myOmikron/q-plugins/lib/validator"
 	"regexp"
 )
 
@@ -45,6 +46,26 @@ func main() {
 		Help:     "The hostname to query.",
 	})
 
+	swapParser := *parser.AddSubCommand("swap", "Checks the swap of the target", "")
+	swapSnmpOptions := swapParser.AddSnmpArguments()
+	swapHostname := swapParser.Parser.String("H", "hostname", &argparse.Option{
+		Required: true,
+		Group:    "plugin options",
+		Help:     "The hostname to query",
+	})
+	swapWarningPercentage := swapParser.Parser.Float("", "warning-prct", &argparse.Option{
+		Default:  "100.0",
+		Group:    "plugin options",
+		Help:     "Usage when the warning state will be set, in percent",
+		Validate: validator.FloatPercentageValidator,
+	})
+	swapCriticalPercentage := swapParser.Parser.Float("", "critical-prct", &argparse.Option{
+		Default:  "100.0",
+		Group:    "plugin options",
+		Help:     "Usage when the critical state will be set, in percent",
+		Validate: validator.FloatPercentageValidator,
+	})
+
 	parser.ParseArgs()
 
 	switch {
@@ -54,5 +75,8 @@ func main() {
 	case uptimeParser.Parser.Invoked:
 		cli.CheckSnmpOptions(uptimeSnmpOptions)
 		checkUptime(uptimeHostname, uptimeSnmpOptions)
+	case swapParser.Parser.Invoked:
+		cli.CheckSnmpOptions(swapSnmpOptions)
+		checkSwap(swapHostname, swapWarningPercentage, swapCriticalPercentage, swapSnmpOptions)
 	}
 }
