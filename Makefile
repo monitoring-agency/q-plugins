@@ -13,15 +13,12 @@ FILE_SUFFIX = go
 all: .clean .build .generate
 
 .clean:
-	rm -rf bin/
+	rm -rf ${OUT_DIR}/
 
 .build:
-	for filename in $$(find ${FILE_DIR} -name "*${FILE_SUFFIX}"); do\
-		path=$${filename%/*.*};\
-		path=$${path##${FILE_DIR}/};\
-		echo Compiling $${filename} to $${path} ...;\
-		${GO} build -o ${OUT_DIR}/$${path} $${filename};\
-	done
+	find $$(find ${FILE_DIR} -name "*${FILE_SUFFIX}") | while read FILE ; do IFS="/" read -ra P <<< "$$FILE"; [[ $${P[-1]} = $${P[-2]}* ]] && \
+		echo $$(source=$$(echo $${P[@]:0:$$(echo $${#P[@]} - 1)} | tr " " "/"); target=$$(echo ${OUT_DIR}/$$(echo $${P[@]:1:$$(echo $${#P[@]} - 2)} | tr " " "/")); echo Compiling $${source} to $${target} ...; CGO_ENABLED=0 ${GO} build -ldflags=-w -o $${target} ./$${source}; echo "done");\
+	done; exit 0
 
 .generate:
 	for filename in $$(find ${OUT_DIR} -type f -executable); do\
