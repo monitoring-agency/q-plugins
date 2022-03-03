@@ -37,11 +37,22 @@ func main() {
 		Validate: loadValidator,
 	})
 
+	uptimeParser := *parser.AddSubCommand("uptime", "Checks the uptime of the target", "")
+	uptimeSnmpOptions := uptimeParser.AddSnmpArguments()
+	uptimeHostname := uptimeParser.Parser.String("H", "hostname", &argparse.Option{
+		Required: true,
+		Group:    "plugin options",
+		Help:     "The hostname to query.",
+	})
+
 	parser.ParseArgs()
 
 	switch {
 	case loadParser.Parser.Invoked:
 		cli.CheckSnmpOptions(loadSnmpOptions)
 		checkLoad(loadHostname, loadWarning, loadCritical, loadSnmpOptions)
+	case uptimeParser.Parser.Invoked:
+		cli.CheckSnmpOptions(uptimeSnmpOptions)
+		checkUptime(uptimeHostname, uptimeSnmpOptions)
 	}
 }
