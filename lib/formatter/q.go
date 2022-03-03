@@ -8,14 +8,25 @@ import (
 	"time"
 )
 
+type Unit string
+
+const (
+	BYTES        Unit = "b"
+	MILLISECONDS Unit = "ms"
+	NIL          Unit = ""
+	DATETIME     Unit = "datetime"
+)
+
 type IntDataPoint struct {
 	Key   string `json:"key"`
 	Value int    `json:"value"`
+	Unit  Unit   `json:"unit"`
 }
 
 type Float64DataPoint struct {
 	Key   string  `json:"key"`
 	Value float64 `json:"value"`
+	Unit  Unit    `json:"unit"`
 }
 
 type StringDataPoint struct {
@@ -37,11 +48,12 @@ type dataPoint struct {
 	Key   string      `json:"key"`
 	Value interface{} `json:"value"`
 	Type  string      `json:"type"`
+	Unit  Unit        `json:"unit"`
 }
 
 type out struct {
-	Stdout   string        `json:"stdout"`
-	Datasets []interface{} `json:"datasets"`
+	Stdout   string      `json:"stdout"`
+	Datasets []dataPoint `json:"datasets"`
 }
 
 func Error(err error) {
@@ -49,7 +61,7 @@ func Error(err error) {
 }
 
 func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
-	var dps = make([]interface{}, 0)
+	var dps = make([]dataPoint, 0)
 
 	for i := 0; i < len(dataPoints); i++ {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
@@ -57,30 +69,35 @@ func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 				Key:   v.Key,
 				Value: v.Value.Milliseconds(),
 				Type:  "int",
+				Unit:  MILLISECONDS,
 			})
 		} else if v, ok := dataPoints[i].(*Float64DataPoint); ok {
 			dps = append(dps, dataPoint{
 				Key:   v.Key,
 				Value: v.Value,
 				Type:  "float",
+				Unit:  v.Unit,
 			})
 		} else if v, ok := dataPoints[i].(*IntDataPoint); ok {
 			dps = append(dps, dataPoint{
 				Key:   v.Key,
 				Value: v.Value,
 				Type:  "int",
+				Unit:  v.Unit,
 			})
 		} else if v, ok := dataPoints[i].(*StringDataPoint); ok {
 			dps = append(dps, dataPoint{
 				Key:   v.Key,
 				Value: v.Value,
 				Type:  "string",
+				Unit:  NIL,
 			})
 		} else if v, ok := dataPoints[i].(*DateTimeDataPoint); ok {
 			dps = append(dps, dataPoint{
 				Key:   v.Key,
 				Value: v.Value,
 				Type:  "time",
+				Unit:  DATETIME,
 			})
 		}
 	}
