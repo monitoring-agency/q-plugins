@@ -18,15 +18,17 @@ const (
 )
 
 type IntDataPoint struct {
-	Key   string `json:"key"`
-	Value int    `json:"value"`
-	Unit  Unit   `json:"unit"`
+	Key       string `json:"key"`
+	CurveName string `json:"curveName"`
+	Value     int    `json:"value"`
+	Unit      Unit   `json:"unit"`
 }
 
 type Float64DataPoint struct {
-	Key   string  `json:"key"`
-	Value float64 `json:"value"`
-	Unit  Unit    `json:"unit"`
+	Key       string  `json:"key"`
+	CurveName string  `json:"curveName"`
+	Value     float64 `json:"value"`
+	Unit      Unit    `json:"unit"`
 }
 
 type StringDataPoint struct {
@@ -35,8 +37,9 @@ type StringDataPoint struct {
 }
 
 type TimeDataPoint struct {
-	Key   string        `json:"key"`
-	Value time.Duration `json:"value"`
+	Key       string        `json:"key"`
+	CurveName string        `json:"curveName"`
+	Value     time.Duration `json:"value"`
 }
 
 type DateTimeDataPoint struct {
@@ -45,10 +48,11 @@ type DateTimeDataPoint struct {
 }
 
 type dataPoint struct {
-	Key   string      `json:"key"`
-	Value interface{} `json:"value"`
-	Type  string      `json:"type"`
-	Unit  Unit        `json:"unit"`
+	Key       string      `json:"key"`
+	CurveName string      `json:"curveName"`
+	Value     interface{} `json:"value"`
+	Type      string      `json:"type"`
+	Unit      Unit        `json:"unit"`
 }
 
 type out struct {
@@ -66,24 +70,27 @@ func FormatOutputQ(stdout string, st state.State, dataPoints ...interface{}) {
 	for i := 0; i < len(dataPoints); i++ {
 		if v, ok := dataPoints[i].(*TimeDataPoint); ok {
 			dps = append(dps, dataPoint{
-				Key:   v.Key,
-				Value: v.Value.Milliseconds(),
-				Type:  "int",
-				Unit:  MILLISECONDS,
+				Key:       v.Key,
+				CurveName: v.CurveName,
+				Value:     v.Value.Milliseconds(),
+				Type:      "int",
+				Unit:      MILLISECONDS,
 			})
 		} else if v, ok := dataPoints[i].(*Float64DataPoint); ok {
 			dps = append(dps, dataPoint{
-				Key:   v.Key,
-				Value: v.Value,
-				Type:  "float",
-				Unit:  v.Unit,
+				Key:       v.Key,
+				Value:     v.Value,
+				Type:      "float",
+				Unit:      v.Unit,
+				CurveName: v.CurveName,
 			})
 		} else if v, ok := dataPoints[i].(*IntDataPoint); ok {
 			dps = append(dps, dataPoint{
-				Key:   v.Key,
-				Value: v.Value,
-				Type:  "int",
-				Unit:  v.Unit,
+				Key:       v.Key,
+				Value:     v.Value,
+				Type:      "int",
+				Unit:      v.Unit,
+				CurveName: v.CurveName,
 			})
 		} else if v, ok := dataPoints[i].(*StringDataPoint); ok {
 			dps = append(dps, dataPoint{

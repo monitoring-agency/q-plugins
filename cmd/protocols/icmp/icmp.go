@@ -86,16 +86,19 @@ func main() {
 	pinger.OnFinish = func(stats *ping.Statistics) {
 		diff := stats.PacketsSent - stats.PacketsRecv
 		avgRtt := &formatter.TimeDataPoint{
-			Key:   "avg-rtt",
-			Value: stats.AvgRtt,
+			Key:       "rtt",
+			CurveName: "avg",
+			Value:     stats.AvgRtt,
 		}
 		minRtt := &formatter.TimeDataPoint{
-			Key:   "min-rtt",
-			Value: stats.MinRtt,
+			Key:       "rtt",
+			CurveName: "min",
+			Value:     stats.MinRtt,
 		}
 		maxRtt := &formatter.TimeDataPoint{
-			Key:   "max-rtt",
-			Value: stats.MaxRtt,
+			Key:       "rtt",
+			CurveName: "max",
+			Value:     stats.MaxRtt,
 		}
 		packetloss := &formatter.Float64DataPoint{
 			Key:   "packetloss",

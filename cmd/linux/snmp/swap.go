@@ -35,14 +35,16 @@ func checkSwap(hostname *string, warningPrct *float64, criticalPrct *float64, sn
 	prct := float64(usage) / float64(total) * 100
 
 	totalData := &formatter.IntDataPoint{
-		Key:   "swap-total",
-		Value: int(total),
-		Unit:  formatter.BYTES,
+		Key:       "swap",
+		CurveName: "total",
+		Value:     int(total),
+		Unit:      formatter.BYTES,
 	}
 	usageData := &formatter.IntDataPoint{
-		Key:   "swap-used",
-		Value: usage,
-		Unit:  formatter.BYTES,
+		Key:       "swap",
+		CurveName: "used",
+		Value:     usage,
+		Unit:      formatter.BYTES,
 	}
 
 	if *criticalPrct < prct {
